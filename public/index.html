@@ -204,7 +204,24 @@
   const listEl=$("#list"),clockEl=$("#clock"),tagEl=$("#clocktag"),countEl=$("#count"),
         leaderEl=$("#leaderLabel"),statusEl=$("#status"),toastEl=$("#toast");
 
-  let participants=[],timer={running:false,startMs:0,accumMs:0,durationMs:0},offset=0,ready=false,autoPaused=false;
+  let participants=[],timer={running:false,startMs:0,accumMs:0,durationMs:0},offset=0,ready=false,autoPaused=false,wasOver=false;
+
+  // Sonido de meta — Web Audio, sin archivos. Se desbloquea con el primer gesto.
+  let ac=null;
+  function unlock(){try{if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();}catch(e){}}
+  ["pointerdown","keydown"].forEach(ev=>document.addEventListener(ev,unlock));
+  function finishSound(){
+    if(!ac)return;
+    const t0=ac.currentTime;
+    [[880,0,.14],[880,.2,.14],[880,.4,.14],[1319,.62,.6]].forEach(([f,off,dur])=>{
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.type="square";o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,t0+off);
+      g.gain.exponentialRampToValueAtTime(.3,t0+off+.01);
+      g.gain.exponentialRampToValueAtTime(.0001,t0+off+dur);
+      o.connect(g).connect(ac.destination);o.start(t0+off);o.stop(t0+off+dur+.03);
+    });
+  }
   let tv=false; try{tv=localStorage.getItem("vueltas-tv")==="1";}catch(e){}
   document.body.classList.toggle("tv",tv);
   $("#tv").textContent=tv?"Salir de pantalla":"Modo pantalla";
@@ -228,6 +245,8 @@
     clockEl.classList.toggle("low",low);
     clockEl.classList.toggle("done",over);
     document.body.classList.toggle("over",over);
+    if(over&&!wasOver)finishSound();
+    wasOver=over;
     if(over&&timer.running&&!autoPaused){autoPaused=true;post("/api/timer",{action:"pause"});}
     if(!over)autoPaused=false;
   }
