@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tablero de Vueltas RC</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Saira+Condensed:wght@500;600;700&display=swap">
+<style>
+  :root{
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    --bg:#e9edf2; --surface:#fff; --surface-2:#f1f4f8; --line:#d2d9e3;
+    --fg:#13171d; --muted:#5a6473; --accent:#e0590c; --accent-ink:#fff;
+    --leader:#caa42a; --danger:#c23b3b;
+    --font-ui:"Archivo",system-ui,-apple-system,sans-serif;
+    --font-num:"Saira Condensed","Archivo",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0e1116; --surface:#171b22; --surface-2:#1e232c; --line:#2a313c;
+    --fg:#e8ebef; --muted:#9aa4b2; --accent:#ff8a3d; --accent-ink:#1a1206;
+    --leader:#e7c24a; --danger:#ef6a6a; color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0e1116; --surface:#171b22; --surface-2:#1e232c; --line:#2a313c;
+    --fg:#e8ebef; --muted:#9aa4b2; --accent:#ff8a3d; --accent-ink:#1a1206;
+    --leader:#e7c24a; --danger:#ef6a6a; color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--font-ui);-webkit-text-size-adjust:100%}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+  .wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:0 32px}
+
+  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;
+    background:var(--bg);border-bottom:1px solid var(--line);padding-block:12px 10px;margin-bottom:14px}
+  .topline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  h1{font-family:var(--font-num);font-weight:700;font-size:1.45rem;letter-spacing:.02em;
+    margin:0;text-transform:uppercase;text-wrap:balance}
+  .clock{font-family:var(--font-num);font-weight:700;font-variant-numeric:tabular-nums;
+    font-size:2.9rem;line-height:1;margin-left:auto;letter-spacing:.01em}
+  .clock.run{color:var(--accent)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  button{font-family:var(--font-ui);font-size:.95rem;font-weight:600;cursor:pointer;
+    border:1px solid var(--line);background:var(--surface);color:var(--fg);
+    border-radius:10px;padding:9px 14px;-webkit-tap-highlight-color:transparent}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  button.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+  button.ghost{background:transparent;color:var(--muted)}
+  .controls .spacer{margin-left:auto}
+  .meta{color:var(--muted);font-size:.85rem;margin:2px 0 12px;display:flex;gap:14px;flex-wrap:wrap}
+
+  ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .row.leader{border-color:var(--leader);box-shadow:inset 3px 0 0 var(--leader)}
+  .pos{font-family:var(--font-num);font-weight:700;font-size:1.3rem;min-width:1.6ch;text-align:center;color:var(--muted)}
+  .row.leader .pos{color:var(--leader)}
+  .who{min-width:0}
+  .name{font-weight:600;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .car{color:var(--muted);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .laps{font-family:var(--font-num);font-weight:700;font-variant-numeric:tabular-nums;
+    font-size:2.1rem;line-height:1;text-align:right;min-width:2.5ch}
+  .ops{display:flex;align-items:center;gap:6px}
+  .lapbtn{font-family:var(--font-num);font-weight:700;font-size:1.4rem;line-height:1;
+    width:58px;height:52px;border-radius:12px;background:var(--accent);color:var(--accent-ink);border:none}
+  .lapbtn:active{transform:translateY(1px)}
+  .mini{width:38px;height:38px;padding:0;color:var(--muted);font-size:1.2rem;border-radius:9px}
+  .mini.del{color:var(--danger)}
+
+  form{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px}
+  input{font-family:var(--font-ui);font-size:.95rem;color:var(--fg);background:var(--surface);
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+  input#pname{flex:2 1 160px}
+  input#pcar{flex:1 1 120px}
+  form button{flex:0 0 auto}
+
+  .empty{text-align:center;color:var(--muted);padding:40px 16px;border:1px dashed var(--line);border-radius:12px}
+  .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+    background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.9rem;font-weight:600;
+    opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+  .toast.show{opacity:.95}
+
+  body.tv .controls,body.tv form,body.tv .ops,body.tv .meta .hint{display:none}
+  body.tv h1{font-size:1.7rem}
+  body.tv .clock{font-size:3.6rem}
+  body.tv .row{grid-template-columns:auto 1fr auto;padding:16px 18px}
+  body.tv .pos{font-size:1.8rem}
+  body.tv .name{font-size:1.5rem}
+  body.tv .car{font-size:1rem}
+  body.tv .laps{font-size:3rem}
+  @media (max-width:430px){.clock{font-size:2.3rem}.lapbtn{width:52px;height:50px}h1{font-size:1.2rem}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="topline">
+      <h1>🏁 Vueltas RC</h1>
+      <div id="clock" class="clock">00:00</div>
+    </div>
+    <div class="controls">
+      <button id="start" class="primary">Iniciar</button>
+      <button id="pause">Pausar</button>
+      <button id="reset" class="ghost">Reiniciar</button>
+      <button id="tv" class="ghost spacer">Modo pantalla</button>
+    </div>
+  </header>
+
+  <div class="meta">
+    <span id="count">—</span>
+    <span id="leaderLabel"></span>
+    <span class="hint" id="status" style="color:var(--muted)"></span>
+  </div>
+
+  <ul id="list"></ul>
+
+  <form id="addForm" autocomplete="off">
+    <input id="pname" placeholder="Nombre del participante" maxlength="40" required>
+    <input id="pcar" placeholder="Carro / número" maxlength="30">
+    <button type="submit" class="primary">Añadir</button>
+  </form>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const listEl=$("#list"),clockEl=$("#clock"),countEl=$("#count"),
+        leaderEl=$("#leaderLabel"),statusEl=$("#status"),toastEl=$("#toast");
+
+  let participants=[],timer={running:false,startMs:0,accumMs:0},offset=0,ready=false;
+  let tv=false; try{tv=localStorage.getItem("vueltas-tv")==="1";}catch(e){}
+  document.body.classList.toggle("tv",tv);
+  $("#tv").textContent=tv?"Salir de pantalla":"Modo pantalla";
+
+  function toast(m){toastEl.textContent=m;toastEl.classList.add("show");
+    clearTimeout(toast._t);toast._t=setTimeout(()=>toastEl.classList.remove("show"),2200);}
+  function serverNow(){return Date.now()+offset;}
+  function elapsed(){return (timer.accumMs||0)+(timer.running?serverNow()-(timer.startMs||0):0);}
+  function fmt(ms){const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),
+    m=Math.floor(s%3600/60),ss=s%60,p=n=>String(n).padStart(2,"0");
+    return h>0?h+":"+p(m)+":"+p(ss):p(m)+":"+p(ss);}
+  function renderClock(){clockEl.textContent=fmt(elapsed());clockEl.classList.toggle("run",!!timer.running);}
+  setInterval(renderClock,250);renderClock();
+
+  function sorted(){return participants.slice().sort((a,b)=>(b.laps||0)-(a.laps||0)||(a.createdAt||0)-(b.createdAt||0));}
+  function render(){
+    const items=sorted();
+    countEl.textContent=items.length+(items.length===1?" participante":" participantes");
+    const lead=items[0];
+    leaderEl.textContent=(lead&&(lead.laps||0)>0)?"Líder: "+(lead.name||"—")+" ("+lead.laps+")":"";
+    if(!ready){listEl.innerHTML='<li class="empty">Conectando con el tablero…</li>';return;}
+    if(!items.length){listEl.innerHTML='<li class="empty">'+
+      (tv?"Esperando participantes…":"Aún no hay participantes. Añade el primero abajo.")+'</li>';return;}
+    listEl.innerHTML=items.map((p,i)=>{
+      const leader=i===0&&(p.laps||0)>0;
+      return '<li class="row'+(leader?" leader":"")+'">'
+        +'<div class="pos">'+(i+1)+'</div>'
+        +'<div class="who"><div class="name"></div><div class="car"></div></div>'
+        +'<div class="laps">'+(p.laps||0)+'</div>'
+        +'<div class="ops">'
+        +'<button class="mini" data-act="dec" data-id="'+p.id+'" aria-label="Restar vuelta">−</button>'
+        +'<button class="lapbtn" data-act="inc" data-id="'+p.id+'" aria-label="Sumar vuelta">+1</button>'
+        +'<button class="mini del" data-act="del" data-id="'+p.id+'" aria-label="Eliminar">×</button>'
+        +'</div></li>';
+    }).join("");
+    items.forEach((p,i)=>{const r=listEl.children[i];
+      r.querySelector(".name").textContent=p.name||"Sin nombre";
+      r.querySelector(".car").textContent=p.car||"";});
+  }
+
+  async function post(url,data){
+    try{await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data||{})});}
+    catch(e){toast("Sin conexión con el servidor");}
+  }
+  listEl.addEventListener("click",e=>{
+    const b=e.target.closest("button[data-act]");if(!b)return;
+    const id=Number(b.dataset.id);
+    if(b.dataset.act==="inc")post("/api/lap",{id,delta:1});
+    else if(b.dataset.act==="dec")post("/api/lap",{id,delta:-1});
+    else if(b.dataset.act==="del")post("/api/delete",{id});
+  });
+  $("#addForm").addEventListener("submit",e=>{
+    e.preventDefault();const name=$("#pname").value.trim();if(!name)return;
+    post("/api/participants",{name,car:$("#pcar").value.trim()});
+    $("#pname").value="";$("#pcar").value="";$("#pname").focus();
+  });
+  $("#start").onclick=()=>post("/api/timer",{action:"start"});
+  $("#pause").onclick=()=>post("/api/timer",{action:"pause"});
+  $("#reset").onclick=()=>post("/api/timer",{action:"reset"});
+  $("#tv").onclick=()=>{tv=!tv;document.body.classList.toggle("tv",tv);
+    $("#tv").textContent=tv?"Salir de pantalla":"Modo pantalla";
+    try{localStorage.setItem("vueltas-tv",tv?"1":"0");}catch(e){}render();};
+
+  function apply(d){
+    offset=(d.now||Date.now())-Date.now();
+    participants=d.participants||[];
+    timer=d.timer||{running:false,startMs:0,accumMs:0};
+    ready=true;render();renderClock();
+  }
+  // Live stream; EventSource reconecta solo si se cae.
+  const es=new EventSource("/api/events");
+  es.onmessage=ev=>{try{apply(JSON.parse(ev.data));}catch(e){}};
+  es.onerror=()=>{statusEl.textContent="Reconectando…";};
+  es.onopen=()=>{statusEl.textContent="";};
+})();
+</script>
+</body>
+</html>
