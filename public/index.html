@@ -4,106 +4,175 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Tablero de Vueltas RC</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Saira+Condensed:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Saira+Condensed:wght@500;600;700&family=Archivo:wght@400;500;600;700&display=swap">
 <style>
+  /* Tema "pista nocturna" tipo Hot Wheels — azul profundo, llama naranja/rojo,
+     amarillo eléctrico y cromado. Un solo mundo visual, comprometido. */
   :root{
     padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
-    --bg:#e9edf2; --surface:#fff; --surface-2:#f1f4f8; --line:#d2d9e3;
-    --fg:#13171d; --muted:#5a6473; --accent:#e0590c; --accent-ink:#fff;
-    --leader:#caa42a; --danger:#c23b3b;
-    --font-ui:"Archivo",system-ui,-apple-system,sans-serif;
-    --font-num:"Saira Condensed","Archivo",system-ui,sans-serif;
-  }
-  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-    --bg:#0e1116; --surface:#171b22; --surface-2:#1e232c; --line:#2a313c;
-    --fg:#e8ebef; --muted:#9aa4b2; --accent:#ff8a3d; --accent-ink:#1a1206;
-    --leader:#e7c24a; --danger:#ef6a6a; color-scheme:dark;
-  }}
-  :root[data-theme="dark"]{
-    --bg:#0e1116; --surface:#171b22; --surface-2:#1e232c; --line:#2a313c;
-    --fg:#e8ebef; --muted:#9aa4b2; --accent:#ff8a3d; --accent-ink:#1a1206;
-    --leader:#e7c24a; --danger:#ef6a6a; color-scheme:dark;
+    --track:#081230; --panel:#0d1e45; --panel-2:#112a5e; --line:#1f3f7d;
+    --ink:#eaf2ff; --muted:#8ca6d6;
+    --flame-y:#ffd400; --flame-o:#ff7a00; --flame-r:#ec1c24;
+    --accent:#ff6a00; --accent-ink:#1a0b00; --gold:#ffd400; --good:#28e07f; --danger:#ff5a5a;
+    --f-display:"Racing Sans One",system-ui,sans-serif;
+    --f-num:"Saira Condensed","Archivo",system-ui,sans-serif;
+    --f-ui:"Archivo",system-ui,-apple-system,sans-serif;
+    color-scheme:dark;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
-  body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--font-ui);-webkit-text-size-adjust:100%}
-  img{max-width:100%}
-  [hidden]{display:none!important}
-  .wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:0 32px}
+  body{
+    font:14px/1.45 var(--f-ui); color:var(--ink);
+    background:
+      radial-gradient(1200px 500px at 50% -10%, #15336e 0%, transparent 60%),
+      radial-gradient(900px 600px at 110% 20%, #2a1250 0%, transparent 55%),
+      var(--track);
+    min-height:100%;
+  }
+  img{max-width:100%} [hidden]{display:none!important}
 
-  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;
-    background:var(--bg);border-bottom:1px solid var(--line);padding-block:12px 10px;margin-bottom:14px}
-  .topline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  h1{font-family:var(--font-num);font-weight:700;font-size:1.45rem;letter-spacing:.02em;
-    margin:0;text-transform:uppercase;text-wrap:balance}
-  .clock{font-family:var(--font-num);font-weight:700;font-variant-numeric:tabular-nums;
-    font-size:2.9rem;line-height:1;margin-left:auto;letter-spacing:.01em}
-  .clock.run{color:var(--accent)}
-  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-  button{font-family:var(--font-ui);font-size:.95rem;font-weight:600;cursor:pointer;
-    border:1px solid var(--line);background:var(--surface);color:var(--fg);
-    border-radius:10px;padding:9px 14px;-webkit-tap-highlight-color:transparent}
-  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  button.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+  /* bandera a cuadros */
+  .checker{height:12px;width:100%;
+    background:
+      conic-gradient(#f4f7ff 90deg,#0a0f1c 90deg 180deg,#f4f7ff 180deg 270deg,#0a0f1c 270deg) 0 0/18px 18px;
+    opacity:.9}
+
+  .wrap{max-width:900px;margin:0 auto;padding-inline:16px;padding-block:0 36px}
+
+  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;
+    background:linear-gradient(180deg,var(--track) 70%,rgba(8,18,48,.0));
+    padding-block:10px 12px}
+  .brandrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  h1{margin:0;font-family:var(--f-display);font-size:clamp(1.6rem,6vw,2.6rem);
+    letter-spacing:.01em;line-height:.95;transform:skewX(-7deg);text-wrap:balance;
+    background:linear-gradient(92deg,var(--flame-y),var(--flame-o) 55%,var(--flame-r));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 2px 0 rgba(0,0,0,.25);filter:drop-shadow(0 3px 10px rgba(255,106,0,.35))}
+  .spark{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);
+    transform:skewX(-7deg);margin-top:2px}
+
+  .clockwrap{margin-left:auto;text-align:right;min-width:0}
+  .clock{font-family:var(--f-num);font-weight:700;font-variant-numeric:tabular-nums;
+    font-size:clamp(2.6rem,13vw,4.6rem);line-height:.9;letter-spacing:.01em;
+    color:var(--ink)}
+  .clock.run{background:linear-gradient(92deg,var(--flame-y),var(--flame-o) 60%,var(--flame-r));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .clock.low{color:var(--danger);animation:pulse .9s steps(2,end) infinite}
+  .clock.done{color:var(--gold)}
+  .clocktag{font-family:var(--f-num);font-weight:600;font-size:.8rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted)}
+  @keyframes pulse{50%{opacity:.35}}
+
+  .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  button{font-family:var(--f-ui);font-size:.95rem;font-weight:700;cursor:pointer;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--ink);
+    border-radius:11px;padding:10px 15px;-webkit-tap-highlight-color:transparent;transition:transform .05s}
+  button:active{transform:translateY(1px)}
+  button:focus-visible{outline:2px solid var(--flame-o);outline-offset:2px}
+  button.flame{border:none;color:var(--accent-ink);
+    background:linear-gradient(180deg,var(--flame-y),var(--flame-o) 55%,var(--flame-r));
+    box-shadow:0 3px 0 #a81608, 0 6px 16px rgba(255,106,0,.35)}
+  button.flame:active{box-shadow:0 1px 0 #a81608}
   button.ghost{background:transparent;color:var(--muted)}
-  .controls .spacer{margin-left:auto}
-  .meta{color:var(--muted);font-size:.85rem;margin:2px 0 12px;display:flex;gap:14px;flex-wrap:wrap}
+  .bar .spacer{margin-left:auto}
 
-  ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .timebox{display:flex;gap:6px;align-items:center;background:var(--panel);
+    border:1px solid var(--line);border-radius:11px;padding:5px 8px}
+  .timebox label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  input#mins{width:56px;text-align:center}
+  .preset{padding:7px 10px;font-size:.85rem;border-radius:9px}
+
+  input{font-family:var(--f-ui);font-size:.95rem;color:var(--ink);background:var(--panel-2);
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+  input::placeholder{color:#6f87b8}
+
+  .meta{color:var(--muted);font-size:.85rem;margin:12px 0 10px;display:flex;gap:16px;flex-wrap:wrap;
+    font-family:var(--f-num);letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+  .meta b{color:var(--gold)}
+
+  .finish{display:none;margin:4px 0 14px;text-align:center;font-family:var(--f-display);
+    font-size:clamp(1.3rem,5vw,2rem);color:var(--track);padding:12px;border-radius:14px;
+    background:linear-gradient(92deg,var(--flame-y),var(--flame-o) 55%,var(--flame-r));
+    transform:skewX(-6deg);box-shadow:0 8px 24px rgba(255,106,0,.4)}
+  body.over .finish{display:block;animation:pop .4s ease}
+  @keyframes pop{from{transform:skewX(-6deg) scale(.9);opacity:.3}}
+
+  ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
   .row{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px;
-    background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-  .row.leader{border-color:var(--leader);box-shadow:inset 3px 0 0 var(--leader)}
-  .pos{font-family:var(--font-num);font-weight:700;font-size:1.3rem;min-width:1.6ch;text-align:center;color:var(--muted)}
-  .row.leader .pos{color:var(--leader)}
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);border-left:6px solid var(--line);
+    border-radius:14px;padding:12px 14px;position:relative;overflow:hidden}
+  .row::after{content:"";position:absolute;inset:0 0 0 auto;width:120px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(255,106,0,.07));}
+  .row.leader{border-left-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset, 0 6px 20px rgba(255,212,0,.15)}
+  .pos{font-family:var(--f-display);font-size:1.5rem;min-width:1.7ch;text-align:center;color:var(--muted);
+    transform:skewX(-6deg)}
+  .row.leader .pos{color:var(--gold)}
   .who{min-width:0}
-  .name{font-weight:600;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .car{color:var(--muted);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .laps{font-family:var(--font-num);font-weight:700;font-variant-numeric:tabular-nums;
-    font-size:2.1rem;line-height:1;text-align:right;min-width:2.5ch}
-  .ops{display:flex;align-items:center;gap:6px}
-  .lapbtn{font-family:var(--font-num);font-weight:700;font-size:1.4rem;line-height:1;
-    width:58px;height:52px;border-radius:12px;background:var(--accent);color:var(--accent-ink);border:none}
-  .lapbtn:active{transform:translateY(1px)}
-  .mini{width:38px;height:38px;padding:0;color:var(--muted);font-size:1.2rem;border-radius:9px}
+  .name{font-weight:700;font-size:1.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .car{color:var(--muted);font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    text-transform:uppercase;letter-spacing:.08em}
+  .laps{font-family:var(--f-num);font-weight:700;font-variant-numeric:tabular-nums;
+    font-size:2.4rem;line-height:1;text-align:right;min-width:2.3ch;color:var(--ink)}
+  .ops{display:flex;align-items:center;gap:7px}
+  .lapbtn{font-family:var(--f-num);font-weight:700;font-size:1.5rem;line-height:1;
+    width:62px;height:56px;border-radius:13px;color:var(--accent-ink);border:none;
+    background:linear-gradient(180deg,var(--flame-y),var(--flame-o) 55%,var(--flame-r));
+    box-shadow:0 3px 0 #a81608}
+  .lapbtn:active{box-shadow:0 1px 0 #a81608}
+  .mini{width:40px;height:40px;padding:0;color:var(--muted);font-size:1.3rem;border-radius:10px;background:var(--panel)}
   .mini.del{color:var(--danger)}
 
   form{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;
-    background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px}
-  input{font-family:var(--font-ui);font-size:.95rem;color:var(--fg);background:var(--surface);
-    border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
-  input#pname{flex:2 1 160px}
-  input#pcar{flex:1 1 120px}
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+  input#pname{flex:2 1 170px} input#pcar{flex:1 1 120px}
   form button{flex:0 0 auto}
 
-  .empty{text-align:center;color:var(--muted);padding:40px 16px;border:1px dashed var(--line);border-radius:12px}
+  .empty{text-align:center;color:var(--muted);padding:44px 16px;border:1px dashed var(--line);
+    border-radius:14px;font-family:var(--f-num);letter-spacing:.06em;text-transform:uppercase}
   .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
-    background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.9rem;font-weight:600;
+    background:var(--ink);color:var(--track);padding:10px 16px;border-radius:999px;font-size:.9rem;font-weight:700;
     opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
-  .toast.show{opacity:.95}
+  .toast.show{opacity:.96}
 
-  body.tv .controls,body.tv form,body.tv .ops,body.tv .meta .hint{display:none}
-  body.tv h1{font-size:1.7rem}
-  body.tv .clock{font-size:3.6rem}
-  body.tv .row{grid-template-columns:auto 1fr auto;padding:16px 18px}
-  body.tv .pos{font-size:1.8rem}
-  body.tv .name{font-size:1.5rem}
+  /* Modo pantalla / proyección */
+  body.tv .bar,body.tv form,body.tv .ops,body.tv .meta .hint{display:none}
+  body.tv .clock{font-size:clamp(3rem,16vw,6rem)}
+  body.tv .row{grid-template-columns:auto 1fr auto;padding:18px 20px}
+  body.tv .pos{font-size:2rem}
+  body.tv .name{font-size:1.7rem}
   body.tv .car{font-size:1rem}
-  body.tv .laps{font-size:3rem}
-  @media (max-width:430px){.clock{font-size:2.3rem}.lapbtn{width:52px;height:50px}h1{font-size:1.2rem}}
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  body.tv .laps{font-size:3.4rem}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
+<div class="checker"></div>
 <div class="wrap">
   <header>
-    <div class="topline">
-      <h1>🏁 Vueltas RC</h1>
-      <div id="clock" class="clock">00:00</div>
+    <div class="brandrow">
+      <div>
+        <h1>VUELTAS RC</h1>
+        <div class="spark">🔥 Control remoto · carrera en vivo</div>
+      </div>
+      <div class="clockwrap">
+        <div id="clocktag" class="clocktag">Cronómetro</div>
+        <div id="clock" class="clock">00:00</div>
+      </div>
     </div>
-    <div class="controls">
-      <button id="start" class="primary">Iniciar</button>
-      <button id="pause">Pausar</button>
-      <button id="reset" class="ghost">Reiniciar</button>
+
+    <div class="bar">
+      <div class="timebox">
+        <label for="mins">Min</label>
+        <input id="mins" type="number" min="0" max="180" inputmode="numeric" placeholder="8">
+        <button id="setDur" class="preset">Fijar</button>
+        <button class="preset ghost" data-min="3">3</button>
+        <button class="preset ghost" data-min="5">5</button>
+        <button class="preset ghost" data-min="8">8</button>
+      </div>
+      <button id="start" class="flame">▶ Iniciar</button>
+      <button id="pause">⏸ Pausar</button>
+      <button id="reset" class="ghost">↺ Reiniciar</button>
       <button id="tv" class="ghost spacer">Modo pantalla</button>
     </div>
   </header>
@@ -111,15 +180,17 @@
   <div class="meta">
     <span id="count">—</span>
     <span id="leaderLabel"></span>
-    <span class="hint" id="status" style="color:var(--muted)"></span>
+    <span class="hint" id="status"></span>
   </div>
+
+  <div id="finish" class="finish">🏁 ¡TIEMPO! 🏁</div>
 
   <ul id="list"></ul>
 
   <form id="addForm" autocomplete="off">
     <input id="pname" placeholder="Nombre del participante" maxlength="40" required>
     <input id="pcar" placeholder="Carro / número" maxlength="30">
-    <button type="submit" class="primary">Añadir</button>
+    <button type="submit" class="flame">＋ Añadir</button>
   </form>
 </div>
 <div id="toast" class="toast"></div>
@@ -127,10 +198,10 @@
 <script>
 (function(){
   const $=s=>document.querySelector(s);
-  const listEl=$("#list"),clockEl=$("#clock"),countEl=$("#count"),
+  const listEl=$("#list"),clockEl=$("#clock"),tagEl=$("#clocktag"),countEl=$("#count"),
         leaderEl=$("#leaderLabel"),statusEl=$("#status"),toastEl=$("#toast");
 
-  let participants=[],timer={running:false,startMs:0,accumMs:0},offset=0,ready=false;
+  let participants=[],timer={running:false,startMs:0,accumMs:0,durationMs:0},offset=0,ready=false,autoPaused=false;
   let tv=false; try{tv=localStorage.getItem("vueltas-tv")==="1";}catch(e){}
   document.body.classList.toggle("tv",tv);
   $("#tv").textContent=tv?"Salir de pantalla":"Modo pantalla";
@@ -139,21 +210,35 @@
     clearTimeout(toast._t);toast._t=setTimeout(()=>toastEl.classList.remove("show"),2200);}
   function serverNow(){return Date.now()+offset;}
   function elapsed(){return (timer.accumMs||0)+(timer.running?serverNow()-(timer.startMs||0):0);}
-  function fmt(ms){const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),
+  function remaining(){return timer.durationMs>0?Math.max(0,timer.durationMs-elapsed()):null;}
+  function fmt(ms){const s=Math.max(0,Math.round(ms/1000)),h=Math.floor(s/3600),
     m=Math.floor(s%3600/60),ss=s%60,p=n=>String(n).padStart(2,"0");
     return h>0?h+":"+p(m)+":"+p(ss):p(m)+":"+p(ss);}
-  function renderClock(){clockEl.textContent=fmt(elapsed());clockEl.classList.toggle("run",!!timer.running);}
+
+  function renderClock(){
+    const rem=remaining(), countdown=rem!==null;
+    clockEl.textContent=fmt(countdown?rem:elapsed());
+    tagEl.textContent=countdown?(timer.running?"Cuenta regresiva":"Listo · regresiva"):(timer.running?"En marcha":"Cronómetro");
+    const over=countdown&&rem<=0&&timer.durationMs>0;
+    const low=countdown&&timer.running&&rem>0&&rem<=30000;
+    clockEl.classList.toggle("run",timer.running&&!over);
+    clockEl.classList.toggle("low",low);
+    clockEl.classList.toggle("done",over);
+    document.body.classList.toggle("over",over);
+    if(over&&timer.running&&!autoPaused){autoPaused=true;post("/api/timer",{action:"pause"});}
+    if(!over)autoPaused=false;
+  }
   setInterval(renderClock,250);renderClock();
 
   function sorted(){return participants.slice().sort((a,b)=>(b.laps||0)-(a.laps||0)||(a.createdAt||0)-(b.createdAt||0));}
   function render(){
     const items=sorted();
-    countEl.textContent=items.length+(items.length===1?" participante":" participantes");
+    countEl.textContent=items.length+(items.length===1?" piloto":" pilotos");
     const lead=items[0];
-    leaderEl.textContent=(lead&&(lead.laps||0)>0)?"Líder: "+(lead.name||"—")+" ("+lead.laps+")":"";
-    if(!ready){listEl.innerHTML='<li class="empty">Conectando con el tablero…</li>';return;}
+    leaderEl.innerHTML=(lead&&(lead.laps||0)>0)?"Líder: <b>"+esc(lead.name||"—")+"</b> ("+lead.laps+")":"";
+    if(!ready){listEl.innerHTML='<li class="empty">Conectando con la pista…</li>';return;}
     if(!items.length){listEl.innerHTML='<li class="empty">'+
-      (tv?"Esperando participantes…":"Aún no hay participantes. Añade el primero abajo.")+'</li>';return;}
+      (tv?"Esperando pilotos…":"Aún no hay pilotos. Añade el primero abajo.")+'</li>';return;}
     listEl.innerHTML=items.map((p,i)=>{
       const leader=i===0&&(p.laps||0)>0;
       return '<li class="row'+(leader?" leader":"")+'">'
@@ -170,6 +255,7 @@
       r.querySelector(".name").textContent=p.name||"Sin nombre";
       r.querySelector(".car").textContent=p.car||"";});
   }
+  function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
   async function post(url,data){
     try{await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data||{})});}
@@ -190,6 +276,11 @@
   $("#start").onclick=()=>post("/api/timer",{action:"start"});
   $("#pause").onclick=()=>post("/api/timer",{action:"pause"});
   $("#reset").onclick=()=>post("/api/timer",{action:"reset"});
+  function setDuration(min){post("/api/timer",{action:"duration",minutes:min});}
+  $("#setDur").onclick=()=>{const v=parseInt($("#mins").value,10);setDuration(isNaN(v)?0:v);
+    toast(v>0?("Carrera armada a "+v+" min"):"Modo cronómetro libre");};
+  document.querySelectorAll("button[data-min]").forEach(b=>b.onclick=()=>{
+    $("#mins").value=b.dataset.min;setDuration(Number(b.dataset.min));toast("Carrera armada a "+b.dataset.min+" min");});
   $("#tv").onclick=()=>{tv=!tv;document.body.classList.toggle("tv",tv);
     $("#tv").textContent=tv?"Salir de pantalla":"Modo pantalla";
     try{localStorage.setItem("vueltas-tv",tv?"1":"0");}catch(e){}render();};
@@ -197,10 +288,9 @@
   function apply(d){
     offset=(d.now||Date.now())-Date.now();
     participants=d.participants||[];
-    timer=d.timer||{running:false,startMs:0,accumMs:0};
+    timer=Object.assign({running:false,startMs:0,accumMs:0,durationMs:0},d.timer||{});
     ready=true;render();renderClock();
   }
-  // Live stream; EventSource reconecta solo si se cae.
   const es=new EventSource("/api/events");
   es.onmessage=ev=>{try{apply(JSON.parse(ev.data));}catch(e){}};
   es.onerror=()=>{statusEl.textContent="Reconectando…";};

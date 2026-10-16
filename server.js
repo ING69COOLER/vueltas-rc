@@ -11,7 +11,7 @@ const path = require("path");
 const PORT = process.env.PORT || 3000;
 const INDEX = fs.readFileSync(path.join(__dirname, "public", "index.html"));
 
-let state = { participants: [], timer: { running: false, startMs: 0, accumMs: 0 } };
+let state = { participants: [], timer: { running: false, startMs: 0, accumMs: 0, durationMs: 0 } };
 let nextId = 1;
 const clients = new Set();
 
@@ -79,11 +79,15 @@ const server = http.createServer(async (req, res) => {
       broadcast(); return json(res, { ok: true });
     }
     if (p === "/api/timer") {
-      const t = state.timer, now = Date.now();
-      if (body.action === "start") state.timer = { running: true, startMs: now, accumMs: t.accumMs };
+      const t = state.timer, now = Date.now(), dur = t.durationMs || 0;
+      if (body.action === "start") state.timer = { running: true, startMs: now, accumMs: t.accumMs, durationMs: dur };
       else if (body.action === "pause")
-        state.timer = { running: false, startMs: 0, accumMs: t.accumMs + (t.running ? now - t.startMs : 0) };
-      else if (body.action === "reset") state.timer = { running: false, startMs: 0, accumMs: 0 };
+        state.timer = { running: false, startMs: 0, accumMs: t.accumMs + (t.running ? now - t.startMs : 0), durationMs: dur };
+      else if (body.action === "reset") state.timer = { running: false, startMs: 0, accumMs: 0, durationMs: dur };
+      else if (body.action === "duration") {
+        const ms = Math.max(0, Math.min(180, Number(body.minutes) || 0)) * 60000;
+        state.timer = { running: false, startMs: 0, accumMs: 0, durationMs: ms };
+      }
       broadcast(); return json(res, { ok: true });
     }
   }
