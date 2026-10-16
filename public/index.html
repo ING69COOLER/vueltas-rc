@@ -135,8 +135,11 @@
     opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
   .toast.show{opacity:.96}
 
-  /* Modo pantalla / proyección */
-  body.tv .bar,body.tv form,body.tv .ops,body.tv .meta .hint{display:none}
+  /* Modo pantalla / proyección — se ocultan los controles pero NO el botón para salir */
+  body.tv form,body.tv .ops,body.tv .meta .hint,
+  body.tv .timebox,body.tv #start,body.tv #pause,body.tv #reset{display:none}
+  body.tv .bar{margin-top:0}
+  body.tv #tv{background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
   body.tv .clock{font-size:clamp(3rem,16vw,6rem)}
   body.tv .row{grid-template-columns:auto 1fr auto;padding:18px 20px}
   body.tv .pos{font-size:2rem}
