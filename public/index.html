@@ -135,17 +135,44 @@
     opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
   .toast.show{opacity:.96}
 
-  /* Modo pantalla / proyección — se ocultan los controles pero NO el botón para salir */
-  body.tv form,body.tv .ops,body.tv .meta .hint,
+  /* ---- Modo pantalla / proyección: tablero de clasificación centrado ---- */
+  .tvhead{display:none}
+  body.tv form,body.tv .ops,body.tv .meta,
   body.tv .timebox,body.tv #start,body.tv #pause,body.tv #reset{display:none}
-  body.tv .bar{margin-top:0}
+
+  /* marca + reloj centrados */
+  body.tv .brandrow{flex-direction:column;align-items:center;text-align:center;gap:4px}
+  body.tv h1{font-size:clamp(2.2rem,8vw,4.2rem)}
+  body.tv .spark{font-size:.9rem}
+  body.tv .clockwrap{margin-left:0;text-align:center;margin-top:6px}
+  body.tv .clocktag{font-size:1rem;letter-spacing:.22em}
+  body.tv .clock{font-size:clamp(3.6rem,18vw,7rem)}
+  body.tv header{position:static}
+  body.tv .bar{justify-content:center;margin-top:12px}
+  body.tv .bar .spacer{margin-left:0}
   body.tv #tv{background:var(--panel-2);color:var(--ink);border:1px solid var(--line)}
-  body.tv .clock{font-size:clamp(3rem,16vw,6rem)}
-  body.tv .row{grid-template-columns:auto 1fr auto;padding:18px 20px}
-  body.tv .pos{font-size:2rem}
-  body.tv .name{font-size:1.7rem}
-  body.tv .car{font-size:1rem}
-  body.tv .laps{font-size:3.4rem}
+  body.tv .finish{max-width:640px;margin-inline:auto}
+
+  /* encabezado de columnas */
+  body.tv .tvhead{display:grid;grid-template-columns:3.6rem 1fr auto;gap:16px;align-items:end;
+    padding:0 22px 8px;margin:8px auto 12px;max-width:760px;border-bottom:2px solid var(--line);
+    font-family:var(--f-num);font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);font-size:.9rem}
+  body.tv .tvhead .h1{text-align:center}
+  body.tv .tvhead .h3{text-align:right}
+
+  /* filas tipo clasificación con medallas 1-2-3 */
+  body.tv #list{max-width:760px;margin-inline:auto}
+  body.tv .row{grid-template-columns:3.6rem 1fr auto;gap:16px;padding:16px 22px;align-items:center}
+  body.tv .row::after{display:none}
+  body.tv .pos{transform:none;width:3.6rem;height:3.6rem;display:grid;place-items:center;
+    border-radius:16px;background:var(--panel);color:var(--muted);font-size:2rem}
+  body.tv .row:nth-child(1) .pos{background:linear-gradient(180deg,#ffe88a,#f4b400);color:#3a2600}
+  body.tv .row:nth-child(2) .pos{background:linear-gradient(180deg,#eef2fa,#b6c4da);color:#1d2838}
+  body.tv .row:nth-child(3) .pos{background:linear-gradient(180deg,#f2bd8c,#cd7f41);color:#3a1d06}
+  body.tv .name{font-size:1.9rem}
+  body.tv .car{font-size:1.05rem}
+  body.tv .laps{font-size:3.6rem;min-width:auto}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -188,6 +215,7 @@
 
   <div id="finish" class="finish">🏁 ¡TIEMPO! 🏁</div>
 
+  <div class="tvhead"><span class="h1">#</span><span class="h2">Piloto</span><span class="h3">Vueltas</span></div>
   <ul id="list"></ul>
 
   <form id="addForm" autocomplete="off">
@@ -204,7 +232,7 @@
   const listEl=$("#list"),clockEl=$("#clock"),tagEl=$("#clocktag"),countEl=$("#count"),
         leaderEl=$("#leaderLabel"),statusEl=$("#status"),toastEl=$("#toast");
 
-  let participants=[],timer={running:false,startMs:0,accumMs:0,durationMs:0},offset=0,ready=false,autoPaused=false,wasOver=false;
+  let participants=[],timer={running:false,startMs:0,accumMs:0,durationMs:0},offset=0,ready=false,autoPaused=false,wasOver=false,lastTick=0;
 
   // Sonido de meta — Web Audio, sin archivos. Se desbloquea con el primer gesto.
   let ac=null;
@@ -221,6 +249,15 @@
       g.gain.exponentialRampToValueAtTime(.0001,t0+off+dur);
       o.connect(g).connect(ac.destination);o.start(t0+off);o.stop(t0+off+dur+.03);
     });
+  }
+  function tick(s){
+    if(!ac)return;
+    const t0=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
+    o.type="square";o.frequency.value=s<=3?1400:900;
+    g.gain.setValueAtTime(.0001,t0);
+    g.gain.exponentialRampToValueAtTime(.26,t0+.008);
+    g.gain.exponentialRampToValueAtTime(.0001,t0+.12);
+    o.connect(g).connect(ac.destination);o.start(t0);o.stop(t0+.14);
   }
   let tv=false; try{tv=localStorage.getItem("vueltas-tv")==="1";}catch(e){}
   document.body.classList.toggle("tv",tv);
@@ -245,6 +282,9 @@
     clockEl.classList.toggle("low",low);
     clockEl.classList.toggle("done",over);
     document.body.classList.toggle("over",over);
+    const secs=countdown?Math.ceil(rem/1000):-1;
+    if(countdown&&timer.running&&secs>=1&&secs<=10&&secs!==lastTick){lastTick=secs;tick(secs);}
+    if(!(countdown&&timer.running)||secs>10||secs<1)lastTick=0;
     if(over&&!wasOver)finishSound();
     wasOver=over;
     if(over&&timer.running&&!autoPaused){autoPaused=true;post("/api/timer",{action:"pause"});}
